@@ -1,16 +1,20 @@
 # Create your views here.
 from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework.response import Response
+from django.contrib import messages
 from rest_framework import viewsets
 from rest_framework import status
-from softdesk.models import Contributor, Project,Issue,Comment
+from rest_framework.permissions import IsAuthenticated
+from softdesk.permission import isAuthor, isContributor
+from softdesk.models import Contributor, Project, Issue, Comment
 from authentication.models import User
-from softdesk.serializers import ProjectSerializer, UserSerializer, ContributorSerializer,IssueSerializer,CommentSerializer
+from softdesk.serializers import ProjectSerializer, UserSerializer, ContributorSerializer, IssueSerializer, CommentSerializer
 
 
 class ProjectViewset(viewsets.ModelViewSet):
 
     serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated, isContributor, isAuthor]
     queryset = Project.objects.all()
     lookup_field = "pk"
 
@@ -52,7 +56,6 @@ class ProjectViewset(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
 class UserViewset(viewsets.ModelViewSet):
 
     serializer_class = UserSerializer
@@ -62,6 +65,7 @@ class UserViewset(viewsets.ModelViewSet):
 
 class ProjectUserViewset(viewsets.ModelViewSet):
     serializer_class = ContributorSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
@@ -76,25 +80,36 @@ class ProjectUserViewset(viewsets.ModelViewSet):
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class IssueViewset(viewsets.ModelViewSet):
     serializer_class = IssueSerializer
+    permission_classes = [ isContributor, isAuthor ]
 
-    def get_queryset(self,*args,**kwargs):
+    def get_queryset(self, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
+        """ if Contributor.objects.filter(project=project,user=self.request.user).exists(): """
         return Issue.objects.filter(project=project)
 
-    def perform_create(self, serializer, *args,**kwargs):
+
+
+    def perform_create(self, serializer, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
-        serializer.save(project=project, author= self.request.user)
+        assigned_user = serializer.validated_data.get('assigned_user')
+        if assigned_user is None:
+            serializer.save(project=project, author=self.request.user,
+                            assigned_user=self.request.user)
+        else:
+            serializer.save(project=project, author=self.request.user)
 
 
 class CommentViewset(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated,isContributor,isAuthor]
 
-    def get_queryset(self,*args,**kwargs):
+    def get_queryset(self, *args, **kwargs):
         issue = get_object_or_404(Issue, id=self.kwargs.get('issue_pk'))
         return Comment.objects.filter(issue=issue)
 
     def perform_create(self, seriarializer, *args, **kwargs):
         issue = get_object_or_404(Issue, id=self.kwargs.get('issue_pk'))
-        seriarializer.save(issue= issue, author=self.request.user)
+        seriarializer.save(issue=issue, author=self.request.user)

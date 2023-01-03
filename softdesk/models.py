@@ -66,7 +66,7 @@ class Issue(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="Issue_author")
     assigned_user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="Assigned_user")
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="Assigned_user", null=True)
 
 
 class Comment(models.Model):
