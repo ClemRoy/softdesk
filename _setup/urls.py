@@ -27,19 +27,19 @@ router = routers.SimpleRouter()
 router.register(r'project', ProjectViewset, basename='project')
 project_router = routers.NestedSimpleRouter(router, r'project', lookup='project')
 project_router.register(r'users' , ProjectUserViewset, basename='users' )
-issue_router = routers.NestedSimpleRouter(router, r'project', lookup='project')
-issue_router.register(r'issue', IssueViewset, basename='issue')
-comment_router = routers.NestedSimpleRouter(issue_router, r'issue',lookup='issue' )
-comment_router.register(r'comment', CommentViewset, basename='comment')
+issues_router = routers.NestedSimpleRouter(router, r'project', lookup='project')
+issues_router.register(r'issues', IssueViewset, basename='issues')
+comments_router = routers.NestedSimpleRouter(issues_router, r'issues',lookup='issues' )
+comments_router.register(r'comments', CommentViewset, basename='comments')
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
     path('', include(project_router.urls)),
-    path('', include(issue_router.urls)),
-    path('', include(comment_router.urls)),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('', include(issues_router.urls)),
+    path('', include(comments_router.urls)),
+    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('signup/', UserViewset.as_view({'post': 'create'}))
 ]

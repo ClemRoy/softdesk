@@ -12,7 +12,7 @@ class Project(models.Model):
         BACKEND = 'BE', _('Back-end')
         FRONTEND = 'FE', _('Front-end')
         IOS = "IO", _('iOS')
-        ANDROID = 'An', _('Android')
+        ANDROID = 'AN', _('Android')
 
     title = models.fields.CharField(max_length=140)
     description = models.fields.CharField(max_length=5000)

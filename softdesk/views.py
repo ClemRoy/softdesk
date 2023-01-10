@@ -1,7 +1,7 @@
 # Create your views here.
 from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework.response import Response
-from django.contrib import messages
+from django.db import IntegrityError
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -65,15 +65,19 @@ class UserViewset(viewsets.ModelViewSet):
 
 class ProjectUserViewset(viewsets.ModelViewSet):
     serializer_class = ContributorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, isContributor, isAuthor]
 
     def get_queryset(self, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
         return Contributor.objects.filter(project=project)
 
     def perform_create(self, serializer, *args, **kwargs):
-        project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
-        serializer.save(project=project)
+        try:
+            project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
+            serializer.save(project=project)
+        except IntegrityError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -83,14 +87,11 @@ class ProjectUserViewset(viewsets.ModelViewSet):
 
 class IssueViewset(viewsets.ModelViewSet):
     serializer_class = IssueSerializer
-    permission_classes = [ isContributor, isAuthor ]
+    permission_classes = [IsAuthenticated ,isContributor, isAuthor]
 
     def get_queryset(self, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
-        """ if Contributor.objects.filter(project=project,user=self.request.user).exists(): """
         return Issue.objects.filter(project=project)
-
-
 
     def perform_create(self, serializer, *args, **kwargs):
         project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
@@ -104,12 +105,14 @@ class IssueViewset(viewsets.ModelViewSet):
 
 class CommentViewset(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated,isContributor,isAuthor]
+    permission_classes = [IsAuthenticated, isContributor, isAuthor]
 
     def get_queryset(self, *args, **kwargs):
-        issue = get_object_or_404(Issue, id=self.kwargs.get('issue_pk'))
+        print( "get query_set",self.kwargs.get('issues_pk'))
+        issue = get_object_or_404(Issue, id=self.kwargs.get('issues_pk'))
         return Comment.objects.filter(issue=issue)
 
     def perform_create(self, seriarializer, *args, **kwargs):
-        issue = get_object_or_404(Issue, id=self.kwargs.get('issue_pk'))
+        print( "perform_create",self.kwargs.get('issues_pk'))
+        issue = get_object_or_404(Issue, id=self.kwargs.get('issues_pk'))
         seriarializer.save(issue=issue, author=self.request.user)
