@@ -68,12 +68,12 @@ class ProjectUserViewset(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, isContributor, isAuthor]
 
     def get_queryset(self, *args, **kwargs):
-        project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
+        project = get_object_or_404(Project, id=self.kwargs.get('projects_pk'))
         return Contributor.objects.filter(project=project)
 
     def perform_create(self, serializer, *args, **kwargs):
         try:
-            project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
+            project = get_object_or_404(Project, id=self.kwargs.get('projects_pk'))
             serializer.save(project=project)
         except IntegrityError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -90,11 +90,11 @@ class IssueViewset(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated ,isContributor, isAuthor]
 
     def get_queryset(self, *args, **kwargs):
-        project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
+        project = get_object_or_404(Project, id=self.kwargs.get('projects_pk'))
         return Issue.objects.filter(project=project)
 
     def perform_create(self, serializer, *args, **kwargs):
-        project = get_object_or_404(Project, id=self.kwargs.get('project_pk'))
+        project = get_object_or_404(Project, id=self.kwargs.get('projects_pk'))
         assigned_user = serializer.validated_data.get('assigned_user')
         if assigned_user is None:
             serializer.save(project=project, author=self.request.user,

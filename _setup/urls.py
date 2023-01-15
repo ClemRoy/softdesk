@@ -24,13 +24,14 @@ from django.urls import path, include
 from softdesk.views import ProjectViewset, UserViewset,ProjectUserViewset,IssueViewset,CommentViewset
 
 router = routers.SimpleRouter()
-router.register(r'project', ProjectViewset, basename='project')
-project_router = routers.NestedSimpleRouter(router, r'project', lookup='project')
+router.register(r'projects', ProjectViewset, basename='projects')
+project_router = routers.NestedSimpleRouter(router, r'projects', lookup='projects')
 project_router.register(r'users' , ProjectUserViewset, basename='users' )
-issues_router = routers.NestedSimpleRouter(router, r'project', lookup='project')
+issues_router = routers.NestedSimpleRouter(router, r'projects', lookup='projects')
 issues_router.register(r'issues', IssueViewset, basename='issues')
 comments_router = routers.NestedSimpleRouter(issues_router, r'issues',lookup='issues' )
 comments_router.register(r'comments', CommentViewset, basename='comments')
+
 
 
 urlpatterns = [
