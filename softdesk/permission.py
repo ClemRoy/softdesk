@@ -4,7 +4,7 @@ from softdesk.models import Project, Contributor, Comment,Issue
 
 def get_pk_or_none(view, *args, **kwargs):
     """Return the pk or None if there is no pk in url"""
-    pk = view.kwargs.get("project_pk")
+    pk = view.kwargs.get("projects_pk")
     return pk
 
 
